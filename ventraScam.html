@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TS Website</title>
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+        /*overflow: hidden; */
+      }
+
+      body {
+        display: flex;
+        align-items: flex-start; /* Align content to top */
+        justify-content: flex-start; /* Align content to left */
+      }
+
+      /* Fullscreen stacking context for media */
+      .background {
+        position: absolute;   /* fill viewport */
+        inset: 0;
+        z-index: 0;
+        pointer-events: none; /* let clicks pass through */
+      }
+
+      /* Back layer: image at top-left, width=100%, keep aspect */
+      .background img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: auto;
+        display: block;
+        z-index: 0;        /* behind video */
+      }
+
+      /* Front layer: video at bottom-left, width=100%, keep aspect */
+      .background video {
+        position: absolute;
+        top: 0;         /* anchor to bottom */
+        left: 0;
+        width: 100%;
+        height: auto;
+        display: block;
+        z-index: 1;        /* above image */
+      }
+
+      #fullscreenBtn {
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        padding: 10px 15px;
+        background-color: transparent;
+        color: transparent;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+        z-index: 1000;
+      }
+
+      #fullscreenBtn:hover {
+        background-color: rgba(0, 0, 0, 0.8);
+      }
+    </style>
+</head>
+
+<body>
+
+  <button id="fullscreenBtn">Enter Fullscreen</button>
+
+  <script>
+    const btn = document.getElementById('fullscreenBtn');
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        // Enter fullscreen
+        const docEl = document.documentElement;
+        if (docEl.requestFullscreen) {
+          docEl.requestFullscreen();
+        } else if (docEl.webkitRequestFullscreen) { /* Safari */
+          docEl.webkitRequestFullscreen();
+        }
+        btn.textContent = 'Exit Fullscreen';
+      } else {
+        // Exit fullscreen
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) { /* Safari */
+          document.webkitExitFullscreen();
+        }
+        btn.textContent = 'Enter Fullscreen';
+      }
+    }
+
+    btn.addEventListener('click', toggleFullscreen);
+    
+  </script>
+
+  <div class=background>
+    <img src="ventraScamImages/Ventra_Home.png">
+
+    <video
+      src="ventraScamImages/Ventra_Vid.mp4"
+      autoplay
+      muted
+      loop
+      playsinline
+      preload="auto"
+      poster="ventraScamImages/Ventra_Home.png">
+    </video>
+  </div>
+
+</body>
+
+</html>
