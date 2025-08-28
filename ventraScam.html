@@ -1,120 +1,165 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TS Website</title>
-    <style>
-      html, body {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        width: 100%;
-        /*overflow: hidden; */
-      }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TS Website</title>
+  <style>
 
-      body {
-        display: flex;
-        align-items: flex-start; /* Align content to top */
-        justify-content: flex-start; /* Align content to left */
-      }
+    body {
+      margin: 0;
+      padding: 0;
+    }
+    
+    .ticket {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    
+    #fullscreenBtn {
+      position: fixed;
+      top: env(safe-area-inset-top, 0);
+      left: env(safe-area-inset-left, 0);
+      padding: 12px 16px;
+      background-color: rgba(0,0,0,0.6);
+      color: #fff;                    /* visible text */
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      z-index: 1000;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-      /* Fullscreen stacking context for media */
-      .background {
-        position: absolute;   /* fill viewport */
-        inset: 0;
-        z-index: 0;
-        pointer-events: none; /* let clicks pass through */
-      }
-
-      /* Back layer: image at top-left, width=100%, keep aspect */
-      .background img {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: auto;
-        display: block;
-        z-index: 0;        /* behind video */
-      }
-
-      /* Front layer: video at bottom-left, width=100%, keep aspect */
-      .background video {
-        position: absolute;
-        top: 0;         /* anchor to bottom */
-        left: 0;
-        width: 100%;
-        height: auto;
-        display: block;
-        z-index: 1;        /* above image */
-      }
-
-      #fullscreenBtn {
-        position: absolute;
-        top: 0px;
-        left: 0px;
-        padding: 10px 15px;
-        background-color: transparent;
-        color: transparent;
-        border: none;
-        border-radius: 5px;
-        font-size: 16px;
-        cursor: pointer;
-        z-index: 1000;
-      }
-
+    @media (hover: hover) and (pointer: fine) {
       #fullscreenBtn:hover {
-        background-color: rgba(0, 0, 0, 0.8);
+        background-color: rgba(0,0,0,0.8);
       }
-    </style>
+    }
+
+    .overlay-clock {
+      position: absolute;
+      top: 286px;   /* y coordinate */
+      left: 285px;  /* x coordinate */
+      color: rgb(4,19,55); /* pick any color */
+      font-family: 'Roboto', sans-serif;
+      font-weight: 700; /* Bold */
+      font-size: 34.5px;
+      z-index: 10;  /* higher than images */
+    }
+
+    .overlay-date {
+      position: absolute;
+      top: 286px;   /* y coordinate */
+      left: 20px;  /* x coordinate */
+      color: rgb(4,19,55); /* pick any color */
+      font-family: 'Roboto', sans-serif;
+      font-weight: 700; /* Bold */
+      font-size: 34.5px;
+      z-index: 10;  /* higher than images */
+      letter-spacing: 1.5px;
+    }
+    
+  </style>
 </head>
 
 <body>
 
+  <!--Button-->
   <button id="fullscreenBtn">Enter Fullscreen</button>
 
   <script>
     const btn = document.getElementById('fullscreenBtn');
 
-    function toggleFullscreen() {
-      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-        // Enter fullscreen
-        const docEl = document.documentElement;
-        if (docEl.requestFullscreen) {
-          docEl.requestFullscreen();
-        } else if (docEl.webkitRequestFullscreen) { /* Safari */
-          docEl.webkitRequestFullscreen();
+    async function toggleFullscreen() {
+      try {
+        if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+          const docEl = document.documentElement;
+          if (docEl.requestFullscreen) {
+            await docEl.requestFullscreen();
+          } else if (docEl.webkitRequestFullscreen) {
+            await docEl.webkitRequestFullscreen();
+          }
+        } else {
+          if (document.exitFullscreen) {
+            await document.exitFullscreen();
+          } else if (document.webkitExitFullscreen) {
+            await document.webkitExitFullscreen();
+          }
         }
-        btn.textContent = 'Exit Fullscreen';
-      } else {
-        // Exit fullscreen
-        if (document.exitFullscreen) {
-          document.exitFullscreen();
-        } else if (document.webkitExitFullscreen) { /* Safari */
-          document.webkitExitFullscreen();
-        }
-        btn.textContent = 'Enter Fullscreen';
+      } catch (e) {
+        console.warn('Fullscreen error', e);
       }
     }
 
+    function syncButton() {
+      const inFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+      btn.textContent = inFs ? 'Exit Fullscreen' : 'Enter Fullscreen';
+    }
+
     btn.addEventListener('click', toggleFullscreen);
-    
+    document.addEventListener('fullscreenchange', syncButton);
+    document.addEventListener('webkitfullscreenchange', syncButton);
+    syncButton(); // set initial label
+  </script>
+  
+  <!--Background-->
+  <img class="ticket" src="ventraScamImages/Ventra_Top.png" alt="Ventra_Top">
+  
+  <video class="ticket"
+    src="ventraScamImages/Ventra_Vid.mp4"
+    autoplay
+    muted
+    loop
+    playsinline
+    preload="auto"
+    poster="ventraScamImages/Ventra_Home.png">
+  </video>
+
+  <div class="overlay-clock" id="clock">Loading…</div>
+
+  <script>
+    const clockEl = document.getElementById('clock');
+
+    function tick() {
+      const now = new Date();
+
+      now.setSeconds(now.getSeconds() + 2);
+
+      const time = now.toLocaleTimeString('en-US', {
+        timeZone: 'America/Chicago',
+        hour: 'numeric',       // shows e.g. 9 instead of 09; use '2-digit' for 09
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      });
+      clockEl.textContent = time; // e.g., "9:28:03 AM"
+    }
+
+    tick();                 // initial paint
+    setInterval(tick, 1000); // update every second
   </script>
 
-  <div class=background>
-    <img src="ventraScamImages/Ventra_Home.png">
+  <div class="overlay-date" id="time">8/26/2025</div>
 
-    <video
-      src="ventraScamImages/Ventra_Vid.mp4"
-      autoplay
-      muted
-      loop
-      playsinline
-      preload="auto"
-      poster="ventraScamImages/Ventra_Home.png">
-    </video>
-  </div>
+  <script>
+    const dateEl = document.getElementById('time');
 
+    function updateDate() {
+      const now = new Date();
+      const date = now.toLocaleDateString('en-US', {
+        timeZone: 'America/Chicago',
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric'
+      });
+      dateEl.textContent = date; // e.g. 8/27/2025
+    }
+
+    updateDate(); // run once on load
+    setInterval(updateDate, 60 * 1000); // update every minute
+  </script>
+  
 </body>
-
 </html>
